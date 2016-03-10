@@ -27,13 +27,12 @@ then
   echo "ERROR: Make failed!"
   exit -1
 fi
-echo "Configure and build Indri ..."
-cd ../external/indri-5.9
-./configure
-make -j 5
+echo "Configure and build ATIRE ..."
+cd ../external/atire
+make
 if [ $? -ne 0 ];
 then
-  echo "ERROR: Build Indri failed!"
+  echo "ERROR: Build ATIRE failed!"
   exit -1
 fi
 echo "Compile the Indri extractor ..."
