@@ -29,7 +29,7 @@ then
 fi
 echo "Configure and build ATIRE ..."
 cd ../external/atire
-make
+make all-atire
 if [ $? -ne 0 ];
 then
   echo "ERROR: Build ATIRE failed!"
@@ -37,7 +37,7 @@ then
 fi
 echo "Compile the Indri extractor ..."
 cd ../../src
-make
+make all
 if [ $? -ne 0 ];
 then
   echo "ERROR: Indri dependent build failed!"

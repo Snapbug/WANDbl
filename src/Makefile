@@ -15,7 +15,7 @@ LIBS= $(patsubst %, -l%, $(DEPENDENCIES)) -lsdsl -ldivsufsort ../build/libfastpf
 
 all:
 	$(CXX) $(CXXFLAGS) -O3 -msse4.2 -std=c++11 mk_wand_idx.cpp -o mk_wand_idx $(INCPATH) $(LIBPATH) $(LIBS) $(CPPLDFLAGS) $(SOURCES_OBJECTS) $(EXTRA_OBJS) $(LDFLAGS) $(MINUS_D)
-	$(CXX) $(CXXFLAGS) -O3 -msse4.2 -std=c++11 kstem_query.cpp -o kstem_query $(INCPATH) $(LIBPATH) $(LIBS) $(CPPLDFLAGS) $(SOURCES_OBJECTS) $(EXTRA_OBJS) $(LDFLAGS) $(MINUS_D)
+	# $(CXX) $(CXXFLAGS) -O3 -msse4.2 -std=c++11 kstem_query.cpp -o kstem_query $(INCPATH) $(LIBPATH) $(LIBS) $(CPPLDFLAGS) $(SOURCES_OBJECTS) $(EXTRA_OBJS) $(LDFLAGS) $(MINUS_D)
 
 clean:
 	rm -f mk_wand_idx kstem_query *~

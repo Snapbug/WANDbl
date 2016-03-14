@@ -89,7 +89,6 @@ int main(int argc, char **argv)
 	double mean_length;
 	char *docname = new char[4096]; // 4k document names... who knows
 	auto atirelengths = search_engine.get_document_lengths(&mean_length);
-	if (false)
 	{
 		for (long long i = 0; i < search_engine.document_count(); i++)
 		{
@@ -104,7 +103,6 @@ int main(int argc, char **argv)
 		}
 	}
 	// write document names
-	if (false)
 	{
 		std::cout << "Writing document names to " << doc_names_file << "." 
 			<< std::endl;
@@ -114,7 +112,6 @@ int main(int argc, char **argv)
 		}
 	}
 	// write the vocabulary
-	if (false)
 	{
 		std::cout << "Writing dictionary to " << dict_file << "." << std::endl;
 		std::ofstream of_dict(dict_file);
