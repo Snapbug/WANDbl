@@ -172,54 +172,62 @@ int main(int argc, char **argv)
 		auto raw_list_size = sizeof(*raw) * (search_engine.document_count() + ANT_COMPRESSION_FACTORY_END_PADDING);
 		unsigned char *postings_list = (unsigned char *)malloc((size_t)postings_list_size);
 		raw = (ANT_compressable_integer *)malloc((size_t)raw_list_size);
+		uint64_t term_count = 0;
 
-		for (char *term = iter.first(NULL); term != NULL; term = iter.next())
+		for (char *term = iter.first(NULL); term != NULL; term_count++, term = iter.next())
 		{
 			iter.get_postings_details(&leaf);
-
-			postings_list = search_engine.get_postings(&leaf, postings_list);
-
-			auto the_quantum_count = ANT_impact_header::get_quantum_count(postings_list);
-			auto beginning_of_the_postings = ANT_impact_header::get_beginning_of_the_postings(postings_list);
-			factory.decompress(impact_header_buffer, postings_list + ANT_impact_header::INFO_SIZE, the_quantum_count * 3);
-
-			std::cout << term << " @ " << leaf.postings_position_on_disk << " (cf:" << leaf.local_collection_frequency << ", df:" << leaf.local_document_frequency << ", q:" << the_quantum_count << ")" << std::endl;
-
-			long long docid, max_docid, sum;
-			ANT_compressable_integer *impact_header = (ANT_compressable_integer *)impact_header_buffer;
-			ANT_compressable_integer *current, *end;
-
-			max_docid = sum = 0;
-			ANT_compressable_integer *impact_value_ptr = impact_header;
-			ANT_compressable_integer *doc_count_ptr = impact_header + the_quantum_count;
-			ANT_compressable_integer *impact_offset_start = impact_header + the_quantum_count * 2;
-			ANT_compressable_integer *impact_offset_ptr = impact_offset_start;
-
-			post.clear();
-			post.reserve(leaf.local_document_frequency);
-			while (doc_count_ptr < impact_offset_start)
+			if (*term == '~')
+				break;
+			else
 			{
-				factory.decompress(raw, postings_list + beginning_of_the_postings + *impact_offset_ptr, *doc_count_ptr);
-				docid = -1;
-				current = raw;
-				end = raw + *doc_count_ptr;
-				while (current < end)
+				postings_list = search_engine.get_postings(&leaf, postings_list);
+
+				auto the_quantum_count = ANT_impact_header::get_quantum_count(postings_list);
+				auto beginning_of_the_postings = ANT_impact_header::get_beginning_of_the_postings(postings_list);
+				factory.decompress(impact_header_buffer, postings_list + ANT_impact_header::INFO_SIZE, the_quantum_count * 3);
+
+				if (term_count % 100000 == 0)
+				{
+					std::cout << term << " @ " << leaf.postings_position_on_disk << " (cf:" << leaf.local_collection_frequency << ", df:" << leaf.local_document_frequency << ", q:" << the_quantum_count << ")" << std::endl;
+				}
+
+				long long docid, max_docid, sum;
+				ANT_compressable_integer *impact_header = (ANT_compressable_integer *)impact_header_buffer;
+				ANT_compressable_integer *current, *end;
+
+				max_docid = sum = 0;
+				ANT_compressable_integer *impact_value_ptr = impact_header;
+				ANT_compressable_integer *doc_count_ptr = impact_header + the_quantum_count;
+				ANT_compressable_integer *impact_offset_start = impact_header + the_quantum_count * 2;
+				ANT_compressable_integer *impact_offset_ptr = impact_offset_start;
+
+				post.clear();
+				post.reserve(leaf.local_document_frequency);
+				while (doc_count_ptr < impact_offset_start)
+				{
+					factory.decompress(raw, postings_list + beginning_of_the_postings + *impact_offset_ptr, *doc_count_ptr);
+					docid = -1;
+					current = raw;
+					end = raw + *doc_count_ptr;
+					while (current < end)
 					{
-					docid += *current++;
-					post.emplace_back(docid, *impact_value_ptr);
+						docid += *current++;
+						post.emplace_back(docid, *impact_value_ptr);
 					}
-				impact_value_ptr++;
-				impact_offset_ptr++;
-				doc_count_ptr++;
+					impact_value_ptr++;
+					impact_offset_ptr++;
+					doc_count_ptr++;
+				}
+
+				// The above will result in sorted by impact first, so re-sort by docid
+				std::sort(std::begin(post), std::end(post));
+
+				plist_type pl(ranker, post);
+				m_postings_lists[map[term]] = pl;
+				F_t_list[map[term]] = leaf.local_collection_frequency;
+				f_t_list[map[term]] = leaf.local_document_frequency;
 			}
-
-			// The above will result in sorted by impact first, so re-sort by docid
-			std::sort(std::begin(post), std::end(post));
-
-			plist_type pl(ranker, post);
-			m_postings_lists[map[term]] = pl;
-			F_t_list[map[term]] = leaf.local_collection_frequency;
-			f_t_list[map[term]] = leaf.local_document_frequency;
 		}
 		size_t num_lists = m_postings_lists.size();
 		std::cout << "Writing " << num_lists << " postings lists." << std::endl;
