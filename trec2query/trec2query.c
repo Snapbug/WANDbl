@@ -25,6 +25,7 @@ ANT_stem *stemmer = NULL;
 char *inchannel_word;
 char *term;
 char stem_buffer[1024];
+bool first_term;
 
 if (argc != 3 && argc != 5)
     exit(printf("Usage:%s <trectopicfile> <tag> [-s <stemmer>]\n<tag> is any combination of t, d, n, q (title, desc, narr, query)\n-s will stem using <stemmer> (same specification as ATIRE)\n", argv[0]));
@@ -44,11 +45,24 @@ for (inchannel_word = inchannel->gets(); inchannel_word != NULL; inchannel_word 
 	{
 	if (stemmer != NULL)
 		{
+		first_term = true;
 		term = strtok(inchannel_word, " ");
 		while (term != NULL)
 			{
 			stemmer->stem(term, stem_buffer);
-			*outchannel << stem_buffer << " ";
+
+			if (*stem_buffer != '\0')
+				{
+				if (first_term)
+					{
+					first_term = false;
+					*outchannel << stem_buffer << ";";
+					}
+				else
+					{
+					*outchannel << stem_buffer << " ";
+					}
+				}
 			term = strtok(NULL, " ");
 			}
 		outchannel->puts(" ");
