@@ -1,13 +1,18 @@
 
 # CONFIG REQUIRED: SET THIS VARIABLE TO THE PATH OF THE INDRI SOURCE CODE
 ATIRESRC=../external/atire
+
 # CONFIG REQUIRED: SET THIS TO THE SDSL INSTALL PATH
 SDSLPREFIX=../build/external/sdsl-lite/
 DIVSUF=../build/external/sdsl-lite/external/libdivsufsort-2.0.1/
 NEWTSRC=../include
 FASTPFOR=../external/fastpfor/headers/
 
-include $(ATIRESRC)/GNUmakefile
+OLD_BASE=$(CUR_DIR)
+BASE_DIR=$(ATIRESRC)
+include $(ATIRESRC)/GNUmakefile.defns
+BASE_DIR=$(OLD_BASE)
+
 SHARED=
 INCPATH=-I$(ATIRESRC)/source/ -I$(ATIRESRC)/atire/ -I $(SDSLPREFIX)/include/ -I$(NEWTSRC) -I$(FASTPFOR) -I$(DIVSUF)/include -I..
 LIBPATH=-L $(SDSLPREFIX)/lib/ -L$(DIVSUF)/lib

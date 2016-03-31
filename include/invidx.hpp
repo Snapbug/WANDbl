@@ -284,7 +284,7 @@ template<class t_pl = block_postings_list<128>,
 				auto pivot_list = std::get<0>(pivot_and_score);
 				auto potential_score = std::get<1>(pivot_and_score);
 #ifndef THETA
-#define THETA 2.0f
+#define THETA 1.0f
 #endif
 
 				while (pivot_list != postings_lists.end()) {
