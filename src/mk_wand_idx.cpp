@@ -174,12 +174,21 @@ int main(int argc, char **argv)
 		raw = (ANT_compressable_integer *)malloc((size_t)raw_list_size);
 		uint64_t term_count = 0;
 
+		size_t num_lists = n_terms + 2;
+		std::cout << "Writing " << num_lists << " postings lists." << std::endl;
+		sdsl::serialize(num_lists, ofs);
+
+		// take the 0 and 1 terms
+		sdsl::serialize(block_postings_list<128>(), ofs);
+		sdsl::serialize(block_postings_list<128>(), ofs);
+
 		for (char *term = iter.first(NULL); term != NULL; term_count++, term = iter.next())
 		{
 			iter.get_postings_details(&leaf);
 			if (*term == '~')
 				break;
 			else
+			/* if (strcmp(term, "aspirin") == 0 || strcmp(term, "cancer") == 0) */
 			{
 				postings_list = search_engine.get_postings(&leaf, postings_list);
 
@@ -188,6 +197,7 @@ int main(int argc, char **argv)
 				factory.decompress(impact_header_buffer, postings_list + ANT_impact_header::INFO_SIZE, the_quantum_count * 3);
 
 				if (term_count % 100000 == 0)
+				/* if (true) */
 				{
 					std::cout << term << " @ " << leaf.postings_position_on_disk << " (cf:" << leaf.local_collection_frequency << ", df:" << leaf.local_document_frequency << ", q:" << the_quantum_count << ")" << std::endl;
 				}
@@ -224,18 +234,14 @@ int main(int argc, char **argv)
 				std::sort(std::begin(post), std::end(post));
 
 				plist_type pl(ranker, post);
-				m_postings_lists[map[term]] = pl;
+				sdsl::serialize(pl, ofs);
+				/* m_postings_lists[map[term]] = pl; */
+
 				F_t_list[map[term]] = leaf.local_collection_frequency;
 				f_t_list[map[term]] = leaf.local_document_frequency;
 			}
 		}
-		size_t num_lists = m_postings_lists.size();
-		std::cout << "Writing " << num_lists << " postings lists." << std::endl;
-		sdsl::serialize(num_lists, ofs);
-		for(const auto& pl : m_postings_lists)
-		{
-			sdsl::serialize(pl, ofs);
-		}
+
 		//Write F_t data to file, skip 0 and 1
 		cout << "Writing F_t lists." << endl;
 		F_t_list.serialize(Ft);

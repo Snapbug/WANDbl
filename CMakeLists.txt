@@ -17,9 +17,12 @@ LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/external/sdsl-lite/lib
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
+
 #append_cxx_compiler_flags("-msse4.2 -std=c++11 -O3 -funroll-loops -DNDEBUG -stdlib=libc++" "CLANG" CMAKE_CXX_FLAGS)
-append_cxx_compiler_flags("-O3 -msse4.2 -O3 -DNDEBUG -fforce-addr -fomit-frame-pointer -funroll-loops -frerun-cse-after-loop -frerun-loop-opt -march=native" "GCC" CMAKE_CXX_FLAGS)
-#append_cxx_compiler_flags("-O -g -W -Wall -msse4.2 -std=c++11" "GCC" CMAKE_CXX_FLAGS)
+#append_cxx_compiler_flags("-O3 -DNDEBUG -fforce-addr -fomit-frame-pointer -funroll-loops -frerun-cse-after-loop -frerun-loop-opt -march=native" "GCC" CMAKE_CXX_FLAGS)
+append_cxx_compiler_flags("-O3 -DNDEBUG -march=native" "GCC" CMAKE_CXX_FLAGS)
+#append_cxx_compiler_flags("-O -g -W -Wall" "GCC" CMAKE_CXX_FLAGS)
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall ")
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math -DNDEBUG -funroll-loops")
@@ -33,6 +36,6 @@ ADD_LIBRARY(fastpfor_lib STATIC external/fastpfor/src/bitpacking.cpp
                                 external/fastpfor/src/simdunalignedbitpacking.cpp
                                 external/fastpfor/src/simdbitpacking.cpp)
 
-  ADD_EXECUTABLE(wand_search src/wand_search.cpp)
+  ADD_EXECUTABLE(wand_search src/wand_search.cpp src/compress_qmx_d4.cpp)
   TARGET_LINK_LIBRARIES(wand_search sdsl divsufsort divsufsort64 pthread fastpfor_lib)
 
