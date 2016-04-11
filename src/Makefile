@@ -7,7 +7,9 @@ DIVSUF=../build/external/sdsl-lite/external/libdivsufsort-2.0.1/
 NEWTSRC=../include
 FASTPFOR=../external/fastpfor/headers/
 
-include $(ATIRESRC)/GNUmakefile
+# The base dir for atire is not the current directory
+BASE_DIR=$(ATIRESRC)
+include $(ATIRESRC)/GNUmakefile.defns
 SHARED=
 INCPATH=-I$(ATIRESRC)/source/ -I$(ATIRESRC)/atire/ -I $(SDSLPREFIX)/include/ -I$(NEWTSRC) -I$(FASTPFOR) -I$(DIVSUF)/include -I..
 LIBPATH=-L $(SDSLPREFIX)/lib/ -L$(DIVSUF)/lib
