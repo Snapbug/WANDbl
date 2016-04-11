@@ -20,8 +20,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
 
 #append_cxx_compiler_flags("-msse4.2 -std=c++11 -O3 -funroll-loops -DNDEBUG -stdlib=libc++" "CLANG" CMAKE_CXX_FLAGS)
-#append_cxx_compiler_flags("-O3 -DNDEBUG -fforce-addr -fomit-frame-pointer -funroll-loops -frerun-cse-after-loop -frerun-loop-opt -march=native" "GCC" CMAKE_CXX_FLAGS)
-append_cxx_compiler_flags("-O3 -DNDEBUG -march=native" "GCC" CMAKE_CXX_FLAGS)
+append_cxx_compiler_flags("-O3 -DNDEBUG -fforce-addr -fomit-frame-pointer -funroll-loops -frerun-cse-after-loop -frerun-loop-opt -march=native" "GCC" CMAKE_CXX_FLAGS)
+#append_cxx_compiler_flags("-O3 -DNDEBUG -march=native" "GCC" CMAKE_CXX_FLAGS)
 #append_cxx_compiler_flags("-O -g -W -Wall" "GCC" CMAKE_CXX_FLAGS)
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall ")
