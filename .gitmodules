@@ -4,6 +4,6 @@
 [submodule "external/sdsl-lite"]
 	path = external/sdsl-lite
 	url = https://www.github.com/simongog/sdsl-lite.git
-[submodule "external/indri-5.9"]
-	path = external/indri-5.9
-	url = https://www.github.com/jsc/indri-5.9
+[submodule "external/atire"]
+	path = external/atire
+	url = https://github.com/Snapbug/atire

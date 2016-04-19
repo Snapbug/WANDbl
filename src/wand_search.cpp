@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include "query.hpp"
 #include "invidx.hpp"
-#include "bm25.hpp"
+#include "impact.hpp"
     
 typedef struct cmdargs {
     std::string collection_dir;
@@ -93,7 +93,7 @@ main (int argc,char* const argv[])
 {
   /* define types */
   using plist_type = block_postings_list<128>;
-  using my_index_t = idx_invfile<plist_type,my_rank_bm25<> >;
+  using my_index_t = idx_invfile<plist_type,my_rank_impact>;
   using clock = std::chrono::high_resolution_clock;
   /* parse command line */
   cmdargs_t args = parse_args(argc,argv);

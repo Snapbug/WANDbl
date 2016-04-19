@@ -27,25 +27,23 @@ then
   echo "ERROR: Make failed!"
   exit -1
 fi
-echo "Configure and build Indri ..."
-cd ../external/indri-5.9
-./configure
-make -j 5
+echo "Configure and build ATIRE ..."
+cd ../external/atire
+make
 if [ $? -ne 0 ];
 then
-  echo "ERROR: Build Indri failed!"
+  echo "ERROR: Build ATIRE failed!"
   exit -1
 fi
-echo "Compile the Indri extractor ..."
+echo "Compile the ATIRE extractor ..."
 cd ../../src
 make
 if [ $? -ne 0 ];
 then
-  echo "ERROR: Indri dependent build failed!"
+  echo "ERROR: ATIRE dependent build failed!"
   exit -1
 fi
 cd ..
 cp src/mk_wand_idx bin/mk_wand_idx
-cp src/kstem_query bin/kstem_query
 cp build/wand_search bin/wand_search
 echo "Binaries are now in the bin directory"
