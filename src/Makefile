@@ -17,7 +17,7 @@ LIBPATH=-L $(SDSLPREFIX)/lib/ -L$(DIVSUF)/lib
 LIBS= $(patsubst %, -l%, $(DEPENDENCIES)) -lsdsl -ldivsufsort ../build/libfastpfor_lib.a
 
 all:
-	$(CXX) $(CXXFLAGS) -O3 -msse4.2 -std=c++11 mk_wand_idx.cpp compress_qmx_d4.cpp -o mk_wand_idx $(INCPATH) $(LIBPATH) $(LIBS) $(CPPLDFLAGS) $(SOURCES_OBJECTS) $(EXTRA_OBJS) $(LDFLAGS) $(MINUS_D)
+	$(CXX) $(CXXFLAGS) -O3 -msse4.2 -std=c++11 mk_wand_idx.cpp compress_qmx_d4.cpp compress_qmx.cpp -o mk_wand_idx $(INCPATH) $(LIBPATH) $(LIBS) $(CPPLDFLAGS) $(SOURCES_OBJECTS) $(EXTRA_OBJS) $(LDFLAGS) $(MINUS_D)
 	# $(CXX) $(CXXFLAGS) -O3 -msse4.2 -std=c++11 kstem_query.cpp -o kstem_query $(INCPATH) $(LIBPATH) $(LIBS) $(CPPLDFLAGS) $(SOURCES_OBJECTS) $(EXTRA_OBJS) $(LDFLAGS) $(MINUS_D)
 
 clean:

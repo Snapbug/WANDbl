@@ -13,6 +13,7 @@
 #include "deltautil.h"
 
 #include "compress_qmx_d4.h"
+#include "compress_qmx.h"
 
 #include "sdsl/int_vector.hpp"
 
@@ -125,6 +126,7 @@ class block_postings_list {
 	public: // types
 	friend class plist_iterator<t_block_size>;
 	using comp_codec =  ANT_compress_qmx_d4;
+  using freq_codec = ANT_compress_qmx;
 	using size_type = sdsl::int_vector<>::size_type;
 	using const_iterator = plist_iterator<t_block_size>;
 	using pfor_data_type = std::vector<uint32_t, FastPForLib::cacheallocator>;
@@ -134,6 +136,7 @@ class block_postings_list {
 		uint32_t id_offset = 0;
 		uint32_t freq_offset = 0;
 		uint32_t id_bytes = -1;
+    uint32_t freq_bytes = -1;
 	};
 #pragma pack(pop)
 	public: // actual data
@@ -236,6 +239,7 @@ class block_postings_list {
 	{
 		// encode ids and freqs using pfor
 		static comp_codec c;
+    static freq_codec fc;
 
 		uint32_t* id_input = (uint32_t*)ids.data();
 		uint32_t* freq_input = (uint32_t*)freqs.data();
@@ -253,40 +257,58 @@ class block_postings_list {
 		size_t encoded_id_size = 0;
 		size_t encoded_freq_size = 0;
 		uint64_t bytes_used = 0;
+    uint64_t freq_bytes_used = 0;
 
 		size_type n = t_block_size;
 		for (size_t i =0; i < ids.size(); i+=t_block_size) {
-			if (i + t_block_size > ids.size())
+			if (i + t_block_size > ids.size()) //break;
 				n = ids.size() % t_block_size;
 
 			m_block_data[cur_block].id_offset = id_offset;
 			m_block_data[cur_block].freq_offset = freq_offset;
 
 			c.encodeArray(&id_input[i], n, &id_out[id_offset], &bytes_used);
-
+      fc.encodeArray(&freq_input[i], n, &freq_out[freq_offset], &freq_bytes_used);
+      
 			id_offset += (bytes_used / sizeof(uint32_t));
+      freq_offset += (freq_bytes_used / sizeof(uint32_t));
 			// make sure that if we used part of a uint32_t that it's counted
 			if (bytes_used % sizeof(uint32_t) != 0) {
 				id_offset++;
 			}
+      if (freq_bytes_used % sizeof(uint32_t) != 0) {
+        freq_offset++;
+      }
+
 			auto alignment = sizeof(uint32_t);
 			// make sure that the next chunk aligns to 16byte boundaries
 			if (id_offset % alignment != 0) {
 				id_offset += alignment - (id_offset % alignment);
 			}
-			if (id_offset > m_docid_data.size()) {
+      if (freq_offset % alignment != 0) {
+        freq_offset += alignment - (freq_offset % alignment);
+      }
+			if (id_offset > m_docid_data.size() || freq_offset > m_freq_data.size()) {
 				std::cerr << "Run out of room encoding!" << std::endl;
 				exit(EXIT_FAILURE);
 			}
 			// we need to know how many bytes were actually used for decoding
 			m_block_data[cur_block].id_bytes = bytes_used;
-
-			vbyte_coder::encode(&freq_input[i],n,&freq_out[freq_offset], encoded_freq_size);
-
-			freq_offset += encoded_freq_size;
+      m_block_data[cur_block].freq_bytes = freq_bytes_used;
 			cur_block++;
 		}
 
+/*    n = ids.size() % t_block_size;
+    if( n!= 0) {
+      m_block_data[cur_block].id_offset = id_offset;
+      m_block_data[cur_block].freq_offset = freq_offset;
+      size_type i = ids.size() - n;
+      vbyte_coder::encode(&id_input[i],n,&id_out[id_offset],encoded_id_size);
+  		vbyte_coder::encode(&freq_input[i],n,&freq_out[freq_offset], encoded_freq_size);
+      id_offset += encoded_id_size;
+      freq_offset += encoded_freq_size;
+    }
+*/
 		m_docid_data.resize(id_offset);
 		m_docid_data.shrink_to_fit();
 		m_freq_data.resize(freq_offset);
@@ -298,6 +320,7 @@ class block_postings_list {
 			pfor_data_type& freq_data) const
 	{
 		static comp_codec c;
+    static freq_codec fc;
 
 		const uint32_t* id_start = m_docid_data.data() + m_block_data[block_id].id_offset;
 		const uint32_t* freq_start = m_freq_data.data() + m_block_data[block_id].freq_offset;
@@ -308,8 +331,16 @@ class block_postings_list {
 			freq_data.resize(block_size);
 		}
 
-		c.decodeArray(id_start, m_block_data[block_id].id_bytes, id_data.data(), block_size);
-		vbyte_coder::decode(freq_start,block_size,freq_data.data());
+//    if(block_size == t_block_size){
+		  c.decodeArray(id_start, m_block_data[block_id].id_bytes, id_data.data(), block_size);
+      fc.decodeArray(freq_start, m_block_data[block_id].freq_bytes, freq_data.data(),
+      block_size);
+//    }
+/*  else{
+      vbyte_coder::decode(id_start,block_size,id_data.data()); 
+      vbyte_coder::decode(freq_start,block_size,freq_data.data()); 
+    }
+*/
 	}
 
 	size_type find_block_with_id(uint64_t id,size_t start_block) const {
@@ -373,7 +404,9 @@ class block_postings_list {
 			written_bytes += sdsl::write_member(m_block_data[0].max_block_id,out,
 					child,"max block id");
 			written_bytes += sdsl::write_member(m_block_data[0].id_bytes,out,child,"id bytes used");
-		} else {
+		
+      written_bytes += sdsl::write_member(m_block_data[0].freq_bytes,out,child,"freq bytes used");
+    } else {
 			auto* blockdata = sdsl::structure_tree::add_child(child, "block data",
 					"block data");
 			out.write((const char*)m_block_data.data(), 
@@ -418,11 +451,14 @@ class block_postings_list {
 		if (m_size <= t_block_size) { // only one block
 			uint32_t max_block_id;
 			uint32_t id_bytes_used;
+      uint32_t freq_bytes_used;
 			read_member(max_block_id,in);
 			read_member(id_bytes_used,in);
+      read_member(freq_bytes_used,in);
 			m_block_data.resize(1);
 			m_block_data[0].max_block_id = max_block_id;
 			m_block_data[0].id_bytes = id_bytes_used;
+      m_block_data[0].freq_bytes = freq_bytes_used;
 		} else {
 			uint64_t num_blocks = m_size / t_block_size;
 			if (m_size % t_block_size != 0) num_blocks++;
